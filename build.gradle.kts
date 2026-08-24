@@ -1,148 +1,66 @@
 plugins {
-    val jvmVersion = libs.versions.fabric.kotlin.get()
-        .split("+kotlin.")[1]
-        .split("+")[0]
-
-    kotlin("jvm").version(jvmVersion)
-    kotlin("plugin.serialization").version(jvmVersion)
-    alias(libs.plugins.fabric.loom)
-    alias(libs.plugins.mod.publish)
-    `maven-publish`
-    java
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
 }
 
-val modVersion = "0.4.3"
-val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
-version = releaseVersion
-group = "me.senseiwells"
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
 
 repositories {
-    mavenLocal()
     mavenCentral()
-    maven("https://maven.supersanta.me/snapshots")
-    maven("https://maven.parchmentmc.org/")
-    maven("https://jitpack.io")
-    maven("https://maven.nucleoid.xyz")
-    maven("https://maven.andante.dev/releases/")
+    maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://jitpack.io' }
+    maven { 
+        url = 'https://maven.andante.dev/releases/'
+        allowInsecureProtocol = true
+    }
 }
 
-@Suppress("UnstableApiUsage")
 dependencies {
-    minecraft(libs.minecraft)
-    @Suppress("UnstableApiUsage")
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.get()}@zip")
-    })
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    modImplementation(libs.fabric.loader)
-    modImplementation(libs.fabric.api)
-    modImplementation(libs.fabric.kotlin)
+    // Fabric API & Fabric Language Kotlin
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0"
+}
 
-    modCompileOnly(libs.server.replay)
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", project.minecraft_version
+    inputs.property "loader_version", project.loader_version
 
-    modApi(libs.polymer.core)
-    modApi(libs.polymer.virtual.entity)
-    modImplementation(libs.placeholder)
-    includeModImplementation(libs.predicate) {}
-
-    includeModImplementation(libs.permissions) {
-        exclude(libs.fabric.api.get().group)
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+                "minecraft_version": project.minecraft_version,
+                "loader_version": project.loader_version
     }
 }
 
-loom {
-    runs {
-        getByName("server") {
-            runDir = "run/${libs.versions.minecraft.get()}"
-        }
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
 }
 
 java {
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
-tasks {
-    processResources {
-        inputs.property("version", modVersion)
-        filesMatching("fabric.mod.json") {
-            expand(mutableMapOf(
-                "version" to modVersion,
-                "fabric_loader_dependency" to libs.versions.fabric.loader.get(),
-                "fabric_kotlin_dependency" to libs.versions.fabric.kotlin.get(),
-                "minecraft_dependency" to libs.versions.minecraft.get().replaceAfterLast('.', "x"),
-                "polymer_dependency" to libs.versions.polymer.get(),
-                "placeholder_dependency" to libs.versions.placeholder.get()
-            ))
-        }
+jar {
+    from("LICENSE") {
+        rename "${it}_${project.archives_base_name}"
     }
-
-    jar {
-        from("LICENSE")
-    }
-
-    publishMods {
-        file = remapJar.get().archiveFile
-        changelog.set(
-            """
-            Add new `"hidden_radius"` nametag option to make nametags disappear within a certain radius.
-            """.trimIndent()
-        )
-        type = STABLE
-        modLoaders.add("fabric")
-
-        displayName = "CustomNameTags $modVersion for ${libs.versions.minecraft.get()}"
-        version = releaseVersion
-
-        modrinth {
-            accessToken = providers.environmentVariable("MODRINTH_API_KEY")
-            projectId = "TizFPouK"
-            minecraftVersions.add(libs.versions.minecraft)
-
-            requires {
-                id = "Ha28R6CL"
-            }
-            requires {
-                id = "P7dR8mSH"
-            }
-            requires {
-                id = "xGdtZczs"
-            }
-            requires {
-                id = "eXts2L7r"
-            }
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("nametags") {
-            artifactId = "custom-nametags"
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        val mavenUrl = System.getenv("MAVEN_URL")
-        if (mavenUrl != null) {
-            maven {
-                url = uri(mavenUrl)
-                val mavenUsername = System.getenv("MAVEN_USERNAME")
-                val mavenPassword = System.getenv("MAVEN_PASSWORD")
-                if (mavenUsername != null && mavenPassword != null) {
-                    credentials {
-                        username = mavenUsername
-                        password = mavenPassword
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun DependencyHandler.includeModImplementation(provider: Provider<*>, action: Action<ExternalModuleDependency>) {
-    include(provider, action)
-    modImplementation(provider, action)
 }
