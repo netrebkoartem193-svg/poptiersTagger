@@ -22,9 +22,9 @@ dependencies {
     mappings("net.fabricmc:yarn:1.21.4+build.1:v2")
     modImplementation("net.fabricmc:fabric-loader:0.16.10")
 
-    // Fabric API & Kotlin Language Adapter
+    // Fabric API & Kotlin Language Adapter (исправленная версия)
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.114.0+1.21.4")
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.13.0+kotlin.2.1.10")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
 }
 
 tasks.processResources {
