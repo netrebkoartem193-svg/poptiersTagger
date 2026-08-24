@@ -1,45 +1,40 @@
 plugins {
-    id("fabric-loom") version "1.8-SNAPSHOT"
+    id("fabric-loom") version "1.8.13"
     id("maven-publish")
     kotlin("jvm") version "2.0.0"
 }
 
-version = project.property("mod_version") as String
-group = project.property("maven_group") as String
+version = "1.0.0"
+group = "me.senseiwells"
 
 base {
-    archivesName.set(project.property("archives_base_name") as String)
+    archivesName.set("poptiers")
 }
 
 repositories {
     mavenCentral()
     maven("https://maven.fabricmc.net/")
     maven("https://jitpack.io")
-    maven("https://maven.andante.dev/releases/") {
-        isAllowInsecureProtocol = true
-    }
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
+    minecraft("com.mojang:minecraft:1.21.4")
+    mappings("net.fabricmc:yarn:1.21.4+build.1:v2")
+    modImplementation("net.fabricmc:fabric-loader:0.16.10")
 
     // Fabric API & Kotlin Language Adapter
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:0.114.0+1.21.4")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.13.0+kotlin.2.1.10")
 }
 
 tasks.processResources {
     inputs.property("version", project.version)
-    inputs.property("minecraft_version", project.property("minecraft_version"))
-    inputs.property("loader_version", project.property("loader_version"))
 
     filesMatching("fabric.mod.json") {
         expand(
             "version" to project.version,
-            "minecraft_version" to project.property("minecraft_version"),
-            "loader_version" to project.property("loader_version")
+            "minecraft_version" to "1.21.4",
+            "loader_version" to "0.16.10"
         )
     }
 }
