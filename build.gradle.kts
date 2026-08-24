@@ -2,6 +2,7 @@ plugins {
     id("fabric-loom") version "1.8.13"
     id("maven-publish")
     kotlin("jvm") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 version = "1.0.0"
@@ -22,9 +23,12 @@ dependencies {
     mappings("net.fabricmc:yarn:1.21.4+build.1:v2")
     modImplementation("net.fabricmc:fabric-loader:0.16.10")
 
-    // Fabric API & Kotlin Language Adapter (исправленная версия)
+    // Fabric API & Kotlin Adapter
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.114.0+1.21.4")
     modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 tasks.processResources {
