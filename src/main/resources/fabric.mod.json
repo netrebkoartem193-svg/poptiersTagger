@@ -1,35 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "nametag",
-  "version": "${version}",
-  "name": "Custom Nametags",
-  "description": "This mod provides you with a way to customize your player's name tags completely server-side with no need for any client mods.",
+  "id": "poptiers",
+  "version": "1.0.0",
+  "name": "PopTiers",
+  "description": "Displays player tier suffixes from Rentry above heads.",
   "authors": [
-    "Sensei"
+    "netrebkoartem"
   ],
-  "contact": {
-    "sources": "https://github.com/senseiwells/CustomNameTags"
-  },
+  "contact": {},
   "license": "MIT",
+  "icon": "assets/poptiers/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      {
-        "adapter": "kotlin",
-        "value": "me.senseiwells.nametag.CustomNameTags"
-      }
+    "client": [
+      "me.senseiwells.nametag.CustomNameTags"
     ]
   },
   "mixins": [
     "nametag.mixins.json"
   ],
   "depends": {
-    "fabric": "*",
-    "fabricloader": ">=${fabric_loader_dependency}",
-    "fabric-language-kotlin": ">=${fabric_kotlin_dependency}",
-    "minecraft": "${minecraft_dependency}",
-    "polymer-core": ">=${polymer_dependency}",
-    "polymer-virtual-entity": ">=${polymer_dependency}",
-    "placeholder-api": ">=${placeholder_dependency}"
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.21.4",
+    "java": ">=21"
   }
 }
