@@ -1,8 +1,8 @@
 plugins {
-    id("fabric-loom") version "1.8.13"
+    id("fabric-loom") version "1.9.2"
     id("maven-publish")
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("jvm") version "2.0.21"
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 version = "1.0.0"
@@ -20,15 +20,15 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:1.21.4")
-    mappings("net.fabricmc:yarn:1.21.4+build.1:v2")
-    modImplementation("net.fabricmc:fabric-loader:0.16.10")
+    mappings(loom.officialMojangMappings())
+    modImplementation("net.fabricmc:fabric-loader:0.16.9")
 
-    // Fabric API & Kotlin Adapter под 1.21.4
+    // Fabric API & Kotlin Adapter
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.114.0+1.21.4")
     modImplementation("net.fabricmc:fabric-language-kotlin:1.13.0+kotlin.2.1.0")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
 
 tasks.processResources {
@@ -38,7 +38,7 @@ tasks.processResources {
         expand(
             "version" to project.version,
             "minecraft_version" to "1.21.4",
-            "loader_version" to "0.16.10"
+            "loader_version" to "0.16.9"
         )
     }
 }
