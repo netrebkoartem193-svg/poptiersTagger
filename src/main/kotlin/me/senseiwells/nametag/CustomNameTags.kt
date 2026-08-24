@@ -1,64 +1,26 @@
-package me.senseiwells.nametag
+object RentryLoader {
+    val tiers = mutableMapOf<String, String>()
+    private var lastUpdate: Long = 0
 
-import me.senseiwells.nametag.impl.NameTagCommand
-import me.senseiwells.nametag.impl.NameTagConfig
-import me.senseiwells.nametag.impl.NameTagUtils
-import me.senseiwells.nametag.impl.NameTagUtils.addNameTag
-import me.senseiwells.nametag.impl.entity.NameTagHolder
-import me.senseiwells.nametag.impl.placeholder.ExtraPlayerPlaceholders
-import me.senseiwells.nametag.impl.predicate.ExtraPredicates
-import net.fabricmc.api.ModInitializer
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
-import net.minecraft.world.entity.Entity
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
-
-object CustomNameTags: ModInitializer {
-    private var provider: NameTagHolder.Provider? = null
-
-    val logger: Logger = LogManager.getLogger("CustomNameTags")
-
-    var config: NameTagConfig
-
-    init {
-        ExtraPlayerPlaceholders.register()
-        ExtraPredicates.register()
-
-        this.config = NameTagConfig.read()
-    }
-
-    override fun onInitialize() {
-        CommandRegistrationCallback.EVENT.register { dispatcher, context, _ ->
-            NameTagCommand.register(dispatcher, context)
+    fun getTier(username: String): String? {
+        val now = System.currentTimeMillis()
+        // Обновляем список с Rentry раз в 60 секунд
+        if (now - lastUpdate > 60000) {
+            lastUpdate = now
+            Thread {
+                try {
+                    val url = java.net.URL("https://rentry.co/твой_хеш/raw")
+                    val text = url.readText()
+                    tiers.clear()
+                    text.lines().forEach { line ->
+                        val parts = line.split(":")
+                        if (parts.size == 2) {
+                            tiers[parts[0].trim().lowercase()] = parts[1].trim()
+                        }
+                    }
+                } catch (_: Exception) {}
+            }.start()
         }
-        ServerLifecycleEvents.SERVER_STOPPING.register {
-            NameTagConfig.write(config)
-        }
-        ServerPlayConnectionEvents.JOIN.register { connection, _, _ ->
-            val player = connection.player
-            NameTagUtils.respawnNameTags(player)
-            for (tag in config.nametags.values) {
-                player.addNameTag(tag)
-            }
-        }
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun setHolderProvider(provider: NameTagHolder.Provider) {
-        if (this.provider == null) {
-            this.provider = provider
-            return
-        }
-        this.logger.error(
-            "CustomNameTags had conflicting custom nametag providers! ${provider}, ${this.provider}"
-        )
-    }
-
-    @JvmStatic
-    fun createHolder(owner: () -> Entity): NameTagHolder {
-        return this.provider?.create(owner) ?: NameTagHolder(owner)
+        return tiers[username.lowercase()]
     }
 }
