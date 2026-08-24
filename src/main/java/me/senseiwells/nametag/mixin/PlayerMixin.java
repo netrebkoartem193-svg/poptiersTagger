@@ -14,22 +14,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin {
+public abstract class PlayerMixin {
 
     private static final Map<String, String> TIERS = new HashMap<>();
     private static long lastCheck = 0;
 
-    // В 1.21.4 имя над головой берется через getDisplayName()
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
     private void onGetDisplayName(CallbackInfoReturnable<Text> cir) {
         long now = System.currentTimeMillis();
-        
-        // Фоновое обновление тиров с Rentry каждые 60 секунд
+
+        // Авто-обновление списка раз в 60 секунд с твоей ссылки
         if (now - lastCheck > 60000) {
             lastCheck = now;
             new Thread(() -> {
                 try {
-                    URL url = new URL("https://rentry.co/твой_хеш/raw");
+                    URL url = new URL("https://rentry.co/poptier123/raw");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                     String line;
                     Map<String, String> tempMap = new HashMap<>();
@@ -49,12 +48,9 @@ public abstract class PlayerEntityMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         String name = player.getGameProfile().getName().toLowerCase();
 
-        // Если ник есть в базе Rentry — к нему добавляется тир
         if (TIERS.containsKey(name)) {
             String tier = TIERS.get(name);
             Text originalText = cir.getReturnValue();
-            
-            // Форматирование: [HT1] ИмяИгрока
             Text modifiedText = Text.literal("§7[" + tier + "] ").append(originalText);
             cir.setReturnValue(modifiedText);
         }
