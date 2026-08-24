@@ -1,10 +1,9 @@
-package me.senseiwells.nametag;
-
-import net.fabricmc.api.ClientModInitializer;
-
-public class CustomNameTags implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        System.out.println("PopTiers initialized!");
+{
+  "nametags": [
+    {
+      "id": "poptiers:tier_tag",
+      "update_interval": 20,
+      "literal": "[Tier 1] %player:displayname%"
     }
+  ]
 }
