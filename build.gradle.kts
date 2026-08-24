@@ -1,132 +1,66 @@
 plugins {
-    val jvmVersion = libs.versions.fabric.kotlin.get()
-        .split("+kotlin.")[1]
-        .split("+")[0]
-
-    kotlin("jvm").version(jvmVersion)
-    kotlin("plugin.serialization").version(jvmVersion)
-    alias(libs.plugins.fabric.loom)
-    alias(libs.plugins.mod.publish)
-    `maven-publish`
-    java
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
 }
 
-val modVersion = "1.5.2"
-val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
-version = releaseVersion
-group = "me.senseiwells"
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
 
 repositories {
     mavenCentral()
-    maven("https://maven.supersanta.me/snapshots")
-    maven("https://maven.parchmentmc.org/")
-    maven("https://jitpack.io")
-    maven("https://maven.nucleoid.xyz")
-    mavenLocal()
+    maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://jitpack.io' }
+    maven { 
+        url = 'https://maven.andante.dev/releases/'
+        allowInsecureProtocol = true
+    }
 }
 
 dependencies {
-    minecraft(libs.minecraft)
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    implementation(libs.fabric.loader)
-    implementation(libs.fabric.api)
-    implementation(libs.fabric.kotlin)
-
-    implementation(libs.placeholder)
-
-    include(libs.bundles.arcade)
-    implementation(libs.bundles.arcade)
-
-    include(implementation(libs.predicate.get())!!)
-
-//    localRuntime(libs.puppets)
+    // Fabric API & Fabric Language Kotlin
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0"
 }
 
-loom {
-    runs {
-        getByName("server") {
-            runDirectory.set(file("run/${libs.versions.minecraft.get()}"))
-        }
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", project.minecraft_version
+    inputs.property "loader_version", project.loader_version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+                "minecraft_version": project.minecraft_version,
+                "loader_version": project.loader_version
     }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
 }
 
 java {
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
-tasks {
-    processResources {
-        inputs.property("version", modVersion)
-        filesMatching("fabric.mod.json") {
-            expand(mutableMapOf(
-                "version" to modVersion,
-                "fabric_loader_dependency" to libs.versions.fabric.loader.get(),
-                "fabric_kotlin_dependency" to libs.versions.fabric.kotlin.get(),
-                "minecraft_dependency" to "~${libs.versions.minecraft.get()}",
-                "placeholder_dependency" to libs.versions.placeholder.get(),
-            ))
-        }
-    }
-
-    jar {
-        from("LICENSE")
-    }
-
-    publishMods {
-        file = jar.get().archiveFile
-        changelog.set(
-            """
-            - Fix crashing at startup
-            """.trimIndent()
-        )
-        type = STABLE
-        modLoaders.add("fabric")
-
-        displayName = "CustomNameTags $modVersion for ${libs.versions.minecraft.get()}"
-        version = releaseVersion
-
-        modrinth {
-            accessToken = providers.environmentVariable("MODRINTH_API_KEY")
-            projectId = "TizFPouK"
-            minecraftVersions.add(libs.versions.minecraft)
-
-            projectDescription.set(file("README.md").readText())
-
-            requires {
-                slug = "fabric-api"
-            }
-            requires {
-                slug = "fabric-language-kotlin"
-            }
-            requires {
-                slug = "placeholder-api"
-            }
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("nametags") {
-            artifactId = "custom-nametags"
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        val mavenUrl = System.getenv("MAVEN_URL")
-        if (mavenUrl != null) {
-            maven {
-                url = uri(mavenUrl)
-                val mavenUsername = System.getenv("MAVEN_USERNAME")
-                val mavenPassword = System.getenv("MAVEN_PASSWORD")
-                if (mavenUsername != null && mavenPassword != null) {
-                    credentials {
-                        username = mavenUsername
-                        password = mavenPassword
-                    }
-                }
-            }
-        }
+jar {
+    from("LICENSE") {
+        rename "${it}_${project.archives_base_name}"
     }
 }
