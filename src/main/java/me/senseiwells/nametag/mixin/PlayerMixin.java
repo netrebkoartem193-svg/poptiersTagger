@@ -23,7 +23,6 @@ public abstract class PlayerMixin {
     private void onGetDisplayName(CallbackInfoReturnable<Text> cir) {
         long now = System.currentTimeMillis();
 
-        // Фоновое авто-обновление тиров с Rentry раз в 60 секунд
         if (now - lastCheck > 60000) {
             lastCheck = now;
             new Thread(() -> {
@@ -33,10 +32,9 @@ public abstract class PlayerMixin {
                     String line;
                     Map<String, String> tempMap = new HashMap<>();
                     while ((line = reader.readLine()) != null) {
-                        // Игнорируем комментарии и пустые строки
-                        if (line.trim().startsWith("#") || line.trim().isEmpty()) continue;
-                        
-                        String[] parts = line.split(":");
+                        String trimmed = line.trim();
+                        if (trimmed.startsWith("#") || trimmed.isEmpty()) continue;
+                        String[] parts = trimmed.split(":");
                         if (parts.length == 2) {
                             tempMap.put(parts[0].trim().toLowerCase(), parts[1].trim().toLowerCase());
                         }
@@ -51,16 +49,9 @@ public abstract class PlayerMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         String name = player.getGameProfile().getName().toLowerCase();
 
-        // Если ник игрока есть в базе Rentry
         if (TIERS.containsKey(name)) {
-            String rawTier = TIERS.get(name);
-            
-            // Преобразуем цветовые коды & в §
-            String formattedTier = rawTier.replace("&", "§");
-            
+            String formattedTier = TIERS.get(name).replace("&", "§");
             Text originalText = cir.getReturnValue();
-            
-            // Вывод вида: [ht1] ИмяИгрока (буквы маленькие, цвета работают)
             Text modifiedText = Text.literal("§7[" + formattedTier + "§7] ").append(originalText);
             cir.setReturnValue(modifiedText);
         }
