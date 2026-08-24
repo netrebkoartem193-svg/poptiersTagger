@@ -1,3 +1,11 @@
-"mixins": [
-  "PlayerMixin"
-]
+{
+  "required": true,
+  "package": "me.senseiwells.nametag.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
