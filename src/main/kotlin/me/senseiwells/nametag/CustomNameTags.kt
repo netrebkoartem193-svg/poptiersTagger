@@ -1,9 +1,10 @@
-package me.senseiwells.nametag
+package me.senseiwells.nametag;
 
-import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.api.ClientModInitializer;
 
-class CustomNameTags : ClientModInitializer {
-    override fun onInitializeClient() {
-        println("PopTiers Mod initialized!")
+public class CustomNameTags implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        System.out.println("PopTiers initialized!");
     }
 }
