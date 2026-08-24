@@ -23,6 +23,7 @@ public abstract class PlayerMixin {
     private void onGetDisplayName(CallbackInfoReturnable<Text> cir) {
         long now = System.currentTimeMillis();
 
+        // Фоновое обновление тиров с Rentry раз в 60 секунд
         if (now - lastCheck > 60000) {
             lastCheck = now;
             new Thread(() -> {
@@ -31,14 +32,22 @@ public abstract class PlayerMixin {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                     String line;
                     Map<String, String> tempMap = new HashMap<>();
+
                     while ((line = reader.readLine()) != null) {
                         String trimmed = line.trim();
-                        if (trimmed.startsWith("#") || trimmed.isEmpty()) continue;
+                        
+                        // Сначала проверяем на пустые строки и комментарии
+                        if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                            continue;
+                        }
+                        
+                        // Делим очищенную строку по двоеточию
                         String[] parts = trimmed.split(":");
                         if (parts.length == 2) {
                             tempMap.put(parts[0].trim().toLowerCase(), parts[1].trim().toLowerCase());
                         }
                     }
+
                     reader.close();
                     TIERS.clear();
                     TIERS.putAll(tempMap);
@@ -49,10 +58,14 @@ public abstract class PlayerMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         String name = player.getGameProfile().getName().toLowerCase();
 
+        // Если игрок есть в списке Rentry
         if (TIERS.containsKey(name)) {
-            String formattedTier = TIERS.get(name).replace("&", "§");
+            String rawTier = TIERS.get(name);
+            String formattedTier = rawTier.replace("&", "§");
+            
             Text originalText = cir.getReturnValue();
             Text modifiedText = Text.literal("§7[" + formattedTier + "§7] ").append(originalText);
+            
             cir.setReturnValue(modifiedText);
         }
     }
